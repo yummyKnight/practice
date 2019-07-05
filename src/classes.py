@@ -1,4 +1,4 @@
-from typing import cast, List, Dict, Optional, Tuple
+from typing import cast, List, Dict, Optional, Type
 
 
 class Person:
@@ -66,11 +66,22 @@ class Doctor(Person):
         for i in Schedule.week:
             self.timetable[i] = None
 
-    def add_work(self,  day_of_week: str, period: Period):  # one Doctor - one cabinet per day
+    def add_work(self, day_of_week: str, period: Period):  # one Doctor - one cabinet per day
         self.timetable[day_of_week] = period  # rewriting prev period
 
     def switch_cab(self, new_cabinet: int, old_cabinet, day_of_week: str):
         self.timetable[day_of_week][new_cabinet] = self.timetable[day_of_week].pop(old_cabinet)
+
+    def change_data(self, another_doc):
+        if self.spec != another_doc.spec:
+            self.spec = another_doc.spec
+        if self.name != another_doc.name:
+            self.name = another_doc.name
+        if self.cabinet != another_doc.cabinet:
+            self.cabinet = another_doc.cabinet
+        for i in self.timetable.keys():
+            if self.timetable[i] != another_doc.new_timetable[i]:
+                self.timetable[i] = another_doc.new_timetable[i]
 
     def del_work(self, day_of_week: str):
         if day_of_week in Schedule.week:
