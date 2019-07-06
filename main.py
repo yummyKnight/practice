@@ -1,8 +1,9 @@
 from src.classes import *
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from get_ready import Ui_MainWindow
 from doc_add_window_dialog import Ui_Dialog  # импорт нашего сгенерированного файла
 import sys
+import re
 
 if __name__ == '__main__':
     doclist: List[Doctor] = list()
@@ -48,7 +49,8 @@ if __name__ == '__main__':
 
             for i in range(self.ui.DoctableWidget.rowCount()):
                 for j in range(self.ui.DoctableWidget.columnCount()):
-                    self.ui.DoctableWidget.item(i, j).setTextAlignment(QtCore.Qt.AlignHCenter)  # align ! get Nontype somehow(sorting)
+                    self.ui.DoctableWidget.item(i, j).setTextAlignment(
+                        QtCore.Qt.AlignHCenter)  # align ! get Nontype somehow(sorting)
                     self.ui.DoctableWidget.item(i, j).setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         def changeDocs(self):
@@ -74,6 +76,7 @@ if __name__ == '__main__':
             super(mywindow1, self).__init__()
             self.ui = Ui_Dialog()
             self.ui.setupUi(self)
+            self.ui.CabEdit.setValidator(QtGui.QIntValidator())
             self.ui.buttonBox.buttons()[1].clicked.connect(self.close)  # cancel shut down window
             if mode != -1:
                 self.ui.buttonBox.buttons()[0].clicked.connect(lambda: self.accept_doc(mode))
@@ -84,24 +87,46 @@ if __name__ == '__main__':
         def read_doc(self) -> Doctor:
             newDoc = Doctor(self.ui.SpecEdit.displayText(), self.ui.NameEdit.displayText(),
                             int(self.ui.CabEdit.displayText()))
-            day_list = list()
-            time_list = list()
-            for i in self.ui.groupBox.children():
-                if type(i) is QtWidgets.QCheckBox and i.isChecked():
-                    day_list.append(i.text())
-                if type(i) is QtWidgets.QLineEdit and i.isEnabled():
-                    time_list.append(i.displayText())
+            try:
+                for i in doclist:
+                    if i.name == newDoc.name and i.spec == newDoc.spec:
+                        raise Exception("Такой доктор уже существует!")
 
-            for i in range(len(day_list)):
-                tp = tuple([float(i) for i in time_list[i].replace(",", ".").split("-")])
-                newDoc.add_work(day_list[i], Period(tp[0], tp[1]))
+                day_list = list()
+                time_list = list()
+                for i in self.ui.groupBox.children():
+                    if type(i) is QtWidgets.QCheckBox and i.isChecked():
+                        day_list.append(i.text())
+
+                    if type(i) is QtWidgets.QLineEdit and i.isEnabled():
+                        if re.match(r'[\d]?\d[. ,]\d\d[ ]*[-][ ]*[\d]?\d[. ,]\d\d', i.displayText()):  # check string
+                            time_list.append(i.displayText())
+                        else:
+                            raise Exception("Неправильно введено время работы врача")
+
+                    for i in range(len(day_list)):
+                        tp = tuple([float(i) for i in time_list[i].replace(",", ".").split("-")])
+                        if tp[0] >= tp[1] or tp[0] > 23.59 or tp[1] > 23.59:
+                            raise timeFieldExeption()
+                        newDoc.add_work(day_list[i], Period(tp[0], tp[1]))
+
+            except Exception as e:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Critical)
+                msg.setText("Error")
+                msg.setInformativeText(e.args[0])
+                msg.setWindowTitle("Error")
+                msg.exec()
+                newDoc = None
 
             return newDoc
 
         def add_doc(self):
             #     check period collision
-            doclist.append(self.read_doc())
-            self.close()
+            t = self.read_doc()
+            if t:
+                doclist.append(t)
+                self.close()
 
         def show_doc(self, changedDoc):
             self.ui.SpecEdit.setText(doclist[changedDoc].spec)
@@ -124,7 +149,6 @@ if __name__ == '__main__':
         def accept_doc(self, changedDoc):
             doclist[changedDoc].change_data(self.read_doc())
             self.close()
-
 
 
     app = QtWidgets.QApplication([])

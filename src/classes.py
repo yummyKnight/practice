@@ -86,3 +86,9 @@ class Doctor(Person):
     def del_work(self, day_of_week: str):
         if day_of_week in Schedule.week:
             self.timetable[day_of_week] = None
+
+
+class timeFieldExeption(Exception):
+
+    def message(self) -> str:
+        return "Неправильно введено время работы врача"
