@@ -80,8 +80,8 @@ class Doctor(Person):
         if self.cabinet != another_doc.cabinet:
             self.cabinet = another_doc.cabinet
         for i in self.timetable.keys():
-            if self.timetable[i] != another_doc.new_timetable[i]:
-                self.timetable[i] = another_doc.new_timetable[i]
+            if self.timetable[i] != another_doc.timetable[i]:
+                self.timetable[i] = another_doc.timetable[i]
 
     def del_work(self, day_of_week: str):
         if day_of_week in Schedule.week:

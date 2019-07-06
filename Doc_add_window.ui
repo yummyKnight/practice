@@ -126,7 +126,7 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QGroupBox" name="">
+   <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
       <x>400</x>

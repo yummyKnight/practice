@@ -1,7 +1,7 @@
 from src.classes import *
 from PyQt5 import QtWidgets, QtCore
 from get_ready import Ui_MainWindow
-from doc_window import Ui_DocWindow  # импорт нашего сгенерированного файла
+from doc_add_window_dialog import Ui_Dialog  # импорт нашего сгенерированного файла
 import sys
 
 if __name__ == '__main__':
@@ -11,51 +11,18 @@ if __name__ == '__main__':
     class mywindow(QtWidgets.QMainWindow):
         def __init__(self):
             super(mywindow, self).__init__()
-            self.doc_window = QtWidgets.QMainWindow()
-            self.setupMainWindow()
-
-        def setupMainWindow(self):
+            self.doc_window = None
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
-            self.ui.pushButton.clicked.connect(self.show_doc_window)
+            self.ui.pushButton.clicked.connect(self.add_doc)
+            self.ui.DoctableWidget.setSortingEnabled(0)  # bugs
             self.ui.DoctableWidget.itemDoubleClicked.connect(self.changeDocs)
 
-        def show_doc_window(self):  # 0 - add mode, 1 - correction mode
-            self.ui = Ui_DocWindow()
-            self.ui.setupUi(self.doc_window)
-            self.doc_window.show()
-            self.ui.buttonBox.buttons()[1].clicked.connect(self.doc_window.close)  # cancel shut down window
-            self.ui.buttonBox.buttons()[0].clicked.connect(self.add_doc)
-
-        def read_doc(self) -> Doctor:
-            self.ui: Ui_DocWindow
-            newDoc = Doctor(self.ui.SpecEdit.displayText(), self.ui.NameEdit.displayText(),
-                            int(self.ui.CabEdit.displayText()))
-            day_list = list()
-            time_list = list()
-
-            for i in self.ui.groupbox.children():
-                if type(i) is QtWidgets.QCheckBox and i.isChecked():
-                    day_list.append(i.text())
-                if type(i) is QtWidgets.QLineEdit and i.isEnabled():
-                    time_list.append(i.displayText())
-
-            for i in range(len(day_list)):
-                tp = tuple([float(i) for i in time_list[i].replace(",", ".").split("-")])
-                newDoc.add_work(day_list[i], Period(tp[0], tp[1]))
-
-            return newDoc
-
         def add_doc(self):
-
-            #     check period collision
-            doclist.append(self.read_doc())
-            self.doc_window.close()
+            self.create_new_window_doc()
             self.updateTable()
 
         def updateTable(self):
-            self.setupMainWindow()
-            self.ui: Ui_MainWindow  # static analizer command
 
             self.ui.DoctableWidget.clearContents()
             self.ui.DoctableWidget.setRowCount(len(doclist))
@@ -81,11 +48,10 @@ if __name__ == '__main__':
 
             for i in range(self.ui.DoctableWidget.rowCount()):
                 for j in range(self.ui.DoctableWidget.columnCount()):
-                    self.ui.DoctableWidget.item(i, j).setTextAlignment(QtCore.Qt.AlignHCenter)  # align
+                    self.ui.DoctableWidget.item(i, j).setTextAlignment(QtCore.Qt.AlignHCenter)  # align ! get Nontype somehow(sorting)
                     self.ui.DoctableWidget.item(i, j).setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         def changeDocs(self):
-            self.ui: Ui_MainWindow
             row: int = self.ui.DoctableWidget.currentRow()
             doc_id = list()
             for i in range(2):
@@ -94,9 +60,50 @@ if __name__ == '__main__':
             for i in range(len(doclist)):
                 if doc_id[0] == doclist[i].name and doc_id[1] == doclist[i].spec:
                     changedDoc = i
-            self.show_doc_window()
-            self.ui: Ui_DocWindow
-            self.ui.buttonBox.buttons()[0].clicked.connect(self.change_doc)
+
+            self.create_new_window_doc(changedDoc)
+            self.updateTable()
+
+        def create_new_window_doc(self, mode=-1):
+            self.doc_window = mywindow1(mode)
+            self.doc_window.exec_()
+
+
+    class mywindow1(QtWidgets.QDialog):
+        def __init__(self, mode):
+            super(mywindow1, self).__init__()
+            self.ui = Ui_Dialog()
+            self.ui.setupUi(self)
+            self.ui.buttonBox.buttons()[1].clicked.connect(self.close)  # cancel shut down window
+            if mode != -1:
+                self.ui.buttonBox.buttons()[0].clicked.connect(lambda: self.accept_doc(mode))
+                self.show_doc(mode)
+            else:
+                self.ui.buttonBox.buttons()[0].clicked.connect(self.add_doc)
+
+        def read_doc(self) -> Doctor:
+            newDoc = Doctor(self.ui.SpecEdit.displayText(), self.ui.NameEdit.displayText(),
+                            int(self.ui.CabEdit.displayText()))
+            day_list = list()
+            time_list = list()
+            for i in self.ui.groupBox.children():
+                if type(i) is QtWidgets.QCheckBox and i.isChecked():
+                    day_list.append(i.text())
+                if type(i) is QtWidgets.QLineEdit and i.isEnabled():
+                    time_list.append(i.displayText())
+
+            for i in range(len(day_list)):
+                tp = tuple([float(i) for i in time_list[i].replace(",", ".").split("-")])
+                newDoc.add_work(day_list[i], Period(tp[0], tp[1]))
+
+            return newDoc
+
+        def add_doc(self):
+            #     check period collision
+            doclist.append(self.read_doc())
+            self.close()
+
+        def show_doc(self, changedDoc):
             self.ui.SpecEdit.setText(doclist[changedDoc].spec)
             self.ui.NameEdit.setText(doclist[changedDoc].name)
             self.ui.CabEdit.setText(str(doclist[changedDoc].cabinet))
@@ -106,27 +113,19 @@ if __name__ == '__main__':
                     t.append(i)
 
             for k in t:
-                for i in self.ui.groupbox.children():
+                for i in self.ui.groupBox.children():
                     if type(i) is QtWidgets.QCheckBox and i.text() == k:  # if needed checkbox
                         i.setChecked(1)  # setChecked
-                        self.ui.groupbox.findChild(QtWidgets.QLineEdit,  # and add time to matching lineEdit
+                        self.ui.groupBox.findChild(QtWidgets.QLineEdit,  # and add time to matching lineEdit
                                                    "timeEdit_" + i.objectName()[-1]). \
                             setText(str(doclist[changedDoc].timetable[k]))
                         break
 
-        def change_doc(self, doc_num: int):
+        def accept_doc(self, changedDoc):
+            doclist[changedDoc].change_data(self.read_doc())
+            self.close()
 
-            doclist[doc_num].change_data(self.read_doc())
-            self.doc_window.close()
-            self.updateTable()
 
-    class mywindow1(QtWidgets.QMainWindow):
-        def __init__(self):
-            super(mywindow1, self).__init__()
-            self.ui = Ui_DocWindow()
-            self.ui.setupUi(self)
-            self.ui.buttonBox.buttons()[1].clicked.connect(self.close)  # cancel shut down window
-            self.ui.buttonBox.buttons()[0].clicked.connect(self.add_doc)
 
     app = QtWidgets.QApplication([])
     application = mywindow()
