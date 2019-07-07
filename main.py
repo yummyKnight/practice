@@ -18,6 +18,21 @@ if __name__ == '__main__':
             self.ui.pushButton.clicked.connect(self.add_doc)
             self.ui.DoctableWidget.setSortingEnabled(0)  # bugs
             self.ui.DoctableWidget.itemDoubleClicked.connect(self.changeDocs)
+            self.ui.delButtonDoc.clicked.connect(self.deleteDoctor)
+
+        def deleteDoctor(self):
+            indexes = self.ui.DoctableWidget.selectionModel().selectedRows()
+            if len(indexes) > 0:
+                for index in indexes:
+                    row = index.row()
+                    doc_id = list()
+                    for i in range(2):
+                        doc_id.append(self.ui.DoctableWidget.item(row, i).text())
+                    for i in range(len(doclist)):
+                        if doc_id[0] == doclist[i].name and doc_id[1] == doclist[i].spec:
+                            del doclist[i]
+                            break
+                self.updateTable()
 
         def add_doc(self):
             self.create_new_window_doc()
@@ -84,12 +99,12 @@ if __name__ == '__main__':
             else:
                 self.ui.buttonBox.buttons()[0].clicked.connect(self.add_doc)
 
-        def read_doc(self) -> Doctor:
+        def read_doc(self, change_doc = None) -> Optional[Doctor]:
             newDoc = Doctor(self.ui.SpecEdit.displayText(), self.ui.NameEdit.displayText(),
                             int(self.ui.CabEdit.displayText()))
             try:
                 for i in doclist:
-                    if i.name == newDoc.name and i.spec == newDoc.spec:
+                    if i.name == newDoc.name and i.spec == newDoc.spec and i != change_doc:
                         raise Exception("Такой доктор уже существует!")
 
                 day_list = list()
@@ -104,18 +119,27 @@ if __name__ == '__main__':
                         else:
                             raise Exception("Неправильно введено время работы врача")
 
-                    for i in range(len(day_list)):
-                        tp = tuple([float(i) for i in time_list[i].replace(",", ".").split("-")])
-                        if tp[0] >= tp[1] or tp[0] > 23.59 or tp[1] > 23.59:
-                            raise timeFieldExeption()
-                        newDoc.add_work(day_list[i], Period(tp[0], tp[1]))
+                for i in range(len(day_list)):
+                    tp = tuple([float(k) for k in time_list[i].replace(",", ".").split("-")])
+                    if tp[0] >= tp[1] or tp[0] > 23.59 or tp[1] > 23.59:  # check what time is valid
+                        raise Exception("Неправильно введено время работы врача")
+                    t_per = Period(tp[0], tp[1])
+                    for t in doclist:
+                        if t.cabinet == newDoc.cabinet and t.timetable[day_list[i]] \
+                                and t.timetable[day_list[i]].is_collision(t_per) and t != change_doc:
+                            raise Exception(
+                                "Доктор: {0} со специализацией {1} уже работает в этом кабинете в это время".format(
+                                    str(t.name), t.spec))
+                    newDoc.add_work(day_list[i], t_per)
 
             except Exception as e:
                 msg = QtWidgets.QMessageBox()
+                msg.setStyleSheet("QLabel{min-width: 75px;}")
+                msg.setStyleSheet("QLabel{min-height: 70px;}")
+                msg.setStyleSheet("QString{text-align: left;}")
                 msg.setIcon(QtWidgets.QMessageBox.Critical)
-                msg.setText("Error")
-                msg.setInformativeText(e.args[0])
-                msg.setWindowTitle("Error")
+                msg.setText(e.args[0])
+                msg.setWindowTitle("Ошибка")
                 msg.exec()
                 newDoc = None
 
@@ -147,8 +171,10 @@ if __name__ == '__main__':
                         break
 
         def accept_doc(self, changedDoc):
-            doclist[changedDoc].change_data(self.read_doc())
-            self.close()
+            d = self.read_doc(doclist[changedDoc])
+            if d:
+                doclist[changedDoc].change_data(d)
+                self.close()
 
 
     app = QtWidgets.QApplication([])

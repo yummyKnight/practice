@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\get_ready.ui'
+# Form implementation generated from reading ui file 'get_ready.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -50,6 +52,10 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.doc_page)
         self.pushButton.setGeometry(QtCore.QRect(1030, 510, 75, 23))
         self.pushButton.setObjectName("pushButton")
+        self.delButtonDoc = QtWidgets.QPushButton(self.doc_page)
+        self.delButtonDoc.setEnabled(True)
+        self.delButtonDoc.setGeometry(QtCore.QRect(920, 510, 80, 25))
+        self.delButtonDoc.setObjectName("delButtonDoc")
         self.tabWidget.addTab(self.doc_page, "")
         self.patient_page = QtWidgets.QWidget()
         self.patient_page.setObjectName("patient_page")
@@ -78,10 +84,14 @@ class Ui_MainWindow(object):
         self.pushButton_2 = QtWidgets.QPushButton(self.patient_page)
         self.pushButton_2.setGeometry(QtCore.QRect(470, 520, 75, 23))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.delButtonPat = QtWidgets.QPushButton(self.patient_page)
+        self.delButtonPat.setEnabled(False)
+        self.delButtonPat.setGeometry(QtCore.QRect(370, 520, 80, 25))
+        self.delButtonPat.setObjectName("delButtonPat")
         self.tabWidget.addTab(self.patient_page, "")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1213, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1213, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -113,6 +123,7 @@ class Ui_MainWindow(object):
         item = self.DoctableWidget.horizontalHeaderItem(7)
         item.setText(_translate("MainWindow", "ПТ"))
         self.pushButton.setText(_translate("MainWindow", "Добавить"))
+        self.delButtonDoc.setText(_translate("MainWindow", "Удалить"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.doc_page), _translate("MainWindow", "Врачи"))
         self.PattableWidget.setSortingEnabled(True)
         item = self.PattableWidget.horizontalHeaderItem(0)
@@ -123,5 +134,5 @@ class Ui_MainWindow(object):
         item = self.DistableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Болезнь"))
         self.pushButton_2.setText(_translate("MainWindow", "Добавить"))
+        self.delButtonPat.setText(_translate("MainWindow", "Удалить"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.patient_page), _translate("MainWindow", "Пациенты"))
-

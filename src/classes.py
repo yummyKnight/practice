@@ -44,9 +44,9 @@ class Period:
         cast(Period, another_period)
         if self.borL <= another_period.borL <= self.borR or self.borL <= another_period.borR <= self.borR or \
                 another_period.borL >= self.borL and another_period.borR <= self.borR:
-            return False
-        else:
             return True
+        else:
+            return False
 
     def __str__(self):
         return "{0:.2f} - {1:.2f}".format(self.borL, self.borR)
