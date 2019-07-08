@@ -27,7 +27,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="iconSize">
      <size>
@@ -56,6 +56,9 @@
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
       </property>
       <property name="showGrid">
        <bool>true</bool>
@@ -159,6 +162,9 @@
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>270</number>
+      </attribute>
       <attribute name="horizontalHeaderMinimumSectionSize">
        <number>50</number>
       </attribute>
@@ -199,6 +205,11 @@
         <string>Болезнь</string>
        </property>
       </column>
+      <column>
+       <property name="text">
+        <string>Количество</string>
+       </property>
+      </column>
      </widget>
      <widget class="QPushButton" name="pushButton_2">
       <property name="geometry">
@@ -215,7 +226,7 @@
      </widget>
      <widget class="QPushButton" name="delButtonPat">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>

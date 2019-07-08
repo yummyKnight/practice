@@ -5,13 +5,16 @@ class Person:
     def __init__(self, name: str):
         self.name = name
 
+    def change_data(self, Person):
+        pass
+
 
 class Patient(Person):
     g_diseases: Dict[str, int] = dict()
 
     def __init__(self, name: str):  # tuple or list
         Person.__init__(self, name)
-        self.__diseases: List[str] = list()
+        self._diseases: List[str] = list()
 
     def create_ref(self):
         pass
@@ -21,10 +24,16 @@ class Patient(Person):
             Patient.g_diseases[disease] += 1
         else:
             Patient.g_diseases[disease] = 1
-        self.__diseases.append(disease)
+        self._diseases.append(disease)
+
+    def change_data(self, another_patient):
+        if self.name != another_patient.name:
+            self.name = another_patient.name
+        if self._diseases != another_patient._diseases:
+            self._diseases = another_patient._diseases
 
     def __del__(self):
-        for i in self.__diseases:
+        for i in self._diseases:
             Patient.g_diseases[i] -= 1
             if Patient.g_diseases[i] <= 0:
                 del Patient.g_diseases[i]
