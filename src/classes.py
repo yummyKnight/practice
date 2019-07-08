@@ -30,13 +30,20 @@ class Patient(Person):
         if self.name != another_patient.name:
             self.name = another_patient.name
         if self._diseases != another_patient._diseases:
-            self._diseases = another_patient._diseases
+            # del diseases
+            self.del_diseases()
+            for i in another_patient._diseases:
+                self.add_disease(i)
 
     def __del__(self):
+        self.del_diseases()
+
+    def del_diseases(self):
         for i in self._diseases:
             Patient.g_diseases[i] -= 1
             if Patient.g_diseases[i] <= 0:
                 del Patient.g_diseases[i]
+        self._diseases = list()
 
 
 class Period:

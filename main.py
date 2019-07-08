@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from UI.get_ready import Ui_MainWindow
 from UI.doc_add_window_dialog import Ui_Dialog
 from UI.patient_menu import Ui_PatientD
+from  UI.FAQ import Ui_Reference
 # импорт нашего сгенерированного файла
 import sys
 import re
@@ -125,6 +126,7 @@ if __name__ == '__main__':
                 self.ui.DistableWidget.setItem(row, col, QtWidgets.QTableWidgetItem(str(Patient.g_diseases[dis])))
                 row += 1
             self.set_immutable(self.ui.DistableWidget)
+
         def add_patient(self):
             self.create_new_window_pat()
             self.update_patient_table()
@@ -294,8 +296,6 @@ class PatientWindow(QtWidgets.QDialog):
             patient_list.append(pat)
             self.close()
 
-    def remove_patient(self):
-        pass
 
     def change_patient(self, changedPat):
         d = self.read_patient(patient_list[changedPat])
@@ -304,7 +304,15 @@ class PatientWindow(QtWidgets.QDialog):
             self.close()
 
 
+class FAQWindow(QtWidgets.QDialog):
+    def __init__(self) -> None:
+        super(FAQWindow, self).__init__()
+        self.ui = Ui_Reference()
+        self.ui.setupUi(self)
+
 app = QtWidgets.QApplication([])
+FAQWindow().exec_()
 application = MyMainWindow()
 application.show()
+
 sys.exit(app.exec())
