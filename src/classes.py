@@ -1,10 +1,13 @@
 from typing import cast, List, Dict, Optional, Type
+from abc import ABC, abstractmethod
 
 
-class Person:
+class Person(ABC):
+    @abstractmethod
     def __init__(self, name: str):
         self.name = name
 
+    @abstractmethod
     def change_data(self, Person):
         pass
 
@@ -16,9 +19,6 @@ class Patient(Person):
         Person.__init__(self, name)
         self._diseases: List[str] = list()
 
-    def create_ref(self):
-        pass
-
     def add_disease(self, disease: str):
         if disease in Patient.g_diseases.keys():
             Patient.g_diseases[disease] += 1
@@ -26,14 +26,17 @@ class Patient(Person):
             Patient.g_diseases[disease] = 1
         self._diseases.append(disease)
 
+    def add_diseases(self, diseases: List[str]):
+        for i in diseases:
+            self.add_disease(i)
+
     def change_data(self, another_patient):
         if self.name != another_patient.name:
             self.name = another_patient.name
         if self._diseases != another_patient._diseases:
             # del diseases
             self.del_diseases()
-            for i in another_patient._diseases:
-                self.add_disease(i)
+            self.add_diseases(another_patient._diseases)
 
     def __del__(self):
         self.del_diseases()
@@ -102,9 +105,3 @@ class Doctor(Person):
     def del_work(self, day_of_week: str):
         if day_of_week in Schedule.week:
             self.timetable[day_of_week] = None
-
-
-class timeFieldExeption(Exception):
-
-    def message(self) -> str:
-        return "Неправильно введено время работы врача"

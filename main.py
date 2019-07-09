@@ -3,11 +3,12 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from UI.get_ready import Ui_MainWindow
 from UI.doc_add_window_dialog import Ui_Dialog
 from UI.patient_menu import Ui_PatientD
-from  UI.FAQ import Ui_Reference
+from UI.FAQ import Ui_Reference
 # импорт нашего сгенерированного файла
 import sys
 import re
-
+import pickle
+import os
 if __name__ == '__main__':
     doc_list: List[Doctor] = list()
     patient_list: List[Patient] = list()
@@ -27,6 +28,7 @@ if __name__ == '__main__':
             self.ui.PattableWidget.itemDoubleClicked.connect(self.change_patient)
             self.ui.delButtonDoc.clicked.connect(self.delete_doc)
             self.ui.delButtonPat.clicked.connect(self.delete_patient)
+        #     if found filse export them
 
         def delete_doc(self):
             indexes = self.ui.DoctableWidget.selectionModel().selectedRows()
@@ -154,6 +156,44 @@ if __name__ == '__main__':
                             break
                 self.update_patient_table()
 
+        def closeEvent(self, *args, **kwargs):
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("Вы хотите сохранить данные в файл? \n Это перезапишет ваши прошлые данные.")
+            msg.setWindowTitle("Сохранение")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            retval = msg.exec_()
+
+            if retval == QtWidgets.QMessageBox.Yes:
+                with open("docs.pick", "wb") as f:
+                    pickle.dump(doc_list, f)
+                with open("pat.pick", "wb") as f:
+                    pickle.dump([(i.name, i._diseases) for i in patient_list], f)
+
+        def openSavedData(self):
+            try:
+                if os.stat("docs.pick").st_size or os.stat("pat.pick").st_size:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setText("Хотите загрузить свои прошлые данные?")
+                    msg.setWindowTitle("Загрузка")
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                    retval = msg.exec_()
+                    if retval == QtWidgets.QMessageBox.Yes:
+                        with open("docs.pick", "rb") as f:
+                            global doc_list
+                            doc_list = pickle.load(f)
+                            self.update_doc_table()
+                        with open("pat.pick", "rb") as f:
+                            global patient_list
+                            buf_list = pickle.load(f)
+                            for i in buf_list:
+                                t = Patient(i[0])
+                                t.add_diseases(i[1])
+                                patient_list.append(t)
+                            self.update_patient_table()
+            except FileNotFoundError:
+                pass
 
 class DocWindow(QtWidgets.QDialog):
     def __init__(self, mode):
@@ -276,8 +316,7 @@ class PatientWindow(QtWidgets.QDialog):
                 if i.name == new_patient.name and pat != i:
                     raise Exception("Такой пациент уже существует")
             # end of check
-            for j in re.findall(r"\w+", self.ui.DisEdit.displayText()):
-                new_patient.add_disease(j)
+            new_patient.add_diseases(re.findall(r"\w+", self.ui.DisEdit.displayText()))
 
         except Exception as e:
             msg = QtWidgets.QMessageBox()
@@ -296,7 +335,6 @@ class PatientWindow(QtWidgets.QDialog):
             patient_list.append(pat)
             self.close()
 
-
     def change_patient(self, changedPat):
         d = self.read_patient(patient_list[changedPat])
         if d:
@@ -310,9 +348,12 @@ class FAQWindow(QtWidgets.QDialog):
         self.ui = Ui_Reference()
         self.ui.setupUi(self)
 
+
+
+
 app = QtWidgets.QApplication([])
-FAQWindow().exec_()
 application = MyMainWindow()
 application.show()
-
+FAQWindow().exec_()
+application.openSavedData()
 sys.exit(app.exec())
